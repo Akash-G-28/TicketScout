@@ -48,6 +48,7 @@ def main():
         application.add_handler(CommandHandler("help", bot_handlers.help_command))
         application.add_handler(CommandHandler("status", bot_handlers.status_command))
         application.add_handler(CommandHandler("add_movie", bot_handlers.add_movie_command))
+        application.add_handler(CommandHandler("test", bot_handlers.test_command))
         
         # Register message handler for text messages
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bot_handlers.echo_message))

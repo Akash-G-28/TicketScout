@@ -6,6 +6,7 @@ Provides basic chat functionality including commands and keyword detection.
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
+from scraper import BookMyShowScraper
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,8 @@ class BotHandlers:
             'hello': ['hello', 'hi', 'hey', 'greetings'],
             'bye': ['bye', 'goodbye', 'see you', 'farewell']
         }
+        # Initialize scraper for testing commands
+        self.scraper = BookMyShowScraper()
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -56,7 +59,8 @@ class BotHandlers:
             "/start - Welcome message and bot introduction\n"
             "/help - Show this help message\n"
             "/status - Check current monitoring status\n"
-            "/add_movie - Add a BookMyShow movie URL to monitor\n\n"
+            "/add_movie - Add a BookMyShow movie URL to monitor\n"
+            "/test - Test any BookMyShow URL for ticket availability\n\n"
             "💬 Chat Features:\n"
             "• Send me any text message and I'll echo it back\n"
             "• I can detect keywords like 'hello' and 'bye'\n\n"
@@ -118,6 +122,104 @@ class BotHandlers:
         
         await update.message.reply_text(add_movie_message)
         logger.info(f"Sent add movie instructions to user {update.effective_user.id}")
+    
+    async def test_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Handle the /test command - test a BookMyShow URL for ticket availability.
+        Usage: /test https://in.bookmyshow.com/movie-url
+        
+        Args:
+            update: Telegram update object
+            context: Bot context
+        """
+        user_id = update.effective_user.id
+        
+        # Check if URL was provided
+        if not context.args or len(context.args) == 0:
+            help_message = (
+                "🧪 Test Movie URL\n\n"
+                "Usage: `/test <BookMyShow URL>`\n\n"
+                "📝 Example:\n"
+                "`/test https://in.bookmyshow.com/movies/mumbai/movie-name/ET00123456`\n\n"
+                "This will immediately check if the movie page has booking available."
+            )
+            await update.message.reply_text(help_message, parse_mode='Markdown')
+            logger.info(f"Sent test command help to user {user_id}")
+            return
+        
+        # Get the URL from command arguments
+        test_url = ' '.join(context.args)
+        
+        # Validate URL format
+        if 'bookmyshow.com' not in test_url.lower():
+            error_message = (
+                "❌ Invalid URL\n\n"
+                "Please provide a valid BookMyShow URL.\n"
+                "Example: `https://in.bookmyshow.com/movies/mumbai/movie-name/ET00123456`"
+            )
+            await update.message.reply_text(error_message, parse_mode='Markdown')
+            logger.info(f"Invalid test URL from user {user_id}: {test_url}")
+            return
+        
+        # Send "checking" message
+        checking_message = await update.message.reply_text(
+            f"🔍 Testing URL...\n\n"
+            f"📱 Checking: {test_url}\n\n"
+            f"⏳ Please wait while I check for ticket availability..."
+        )
+        
+        try:
+            # Use scraper to check the URL
+            logger.info(f"Testing URL from user {user_id}: {test_url}")
+            result = self.scraper.check_ticket_availability(test_url)
+            
+            # Prepare result message
+            movie_title = result.get('title', 'Unknown Movie')
+            available = result.get('available', False)
+            status = result.get('status', 'Unknown status')
+            error = result.get('error', None)
+            
+            if error:
+                result_message = (
+                    f"❌ **Test Result - Error**\n\n"
+                    f"🎬 Movie: {movie_title}\n"
+                    f"🔗 URL: {test_url}\n\n"
+                    f"⚠️ Error: {error}\n\n"
+                    f"💡 This might be due to:\n"
+                    f"• Website blocking automated requests\n"
+                    f"• Page not found or moved\n"
+                    f"• Network connectivity issues"
+                )
+            elif available:
+                result_message = (
+                    f"✅ **Test Result - TICKETS AVAILABLE!**\n\n"
+                    f"🎬 Movie: {movie_title}\n"
+                    f"🔗 URL: {test_url}\n\n"
+                    f"🎟️ Status: {status}\n\n"
+                    f"🎉 Great news! Booking appears to be open!"
+                )
+            else:
+                result_message = (
+                    f"❌ **Test Result - No Tickets Found**\n\n"
+                    f"🎬 Movie: {movie_title}\n"
+                    f"🔗 URL: {test_url}\n\n"
+                    f"📋 Status: {status}\n\n"
+                    f"⏰ Booking may not have started yet or tickets are sold out."
+                )
+            
+            # Edit the checking message with results
+            await checking_message.edit_text(result_message, parse_mode='Markdown')
+            logger.info(f"Sent test result to user {user_id}: available={available}")
+            
+        except Exception as e:
+            error_message = (
+                f"❌ **Test Failed**\n\n"
+                f"🔗 URL: {test_url}\n\n"
+                f"⚠️ Error: {str(e)}\n\n"
+                f"Please try again or check if the URL is correct."
+            )
+            await checking_message.edit_text(error_message, parse_mode='Markdown')
+            logger.error(f"Test command error for user {user_id}: {e}")
     
     async def echo_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
