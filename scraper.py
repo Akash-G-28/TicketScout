@@ -88,8 +88,11 @@ class BookMyShowScraper:
             response = self.session.get(url, timeout=10)
             response.raise_for_status()
             
-            # Parse HTML content
-            soup = BeautifulSoup(response.content, 'html.parser')
+            # Handle encoding properly for compressed content
+            response.encoding = 'utf-8'
+            
+            # Parse HTML content with proper encoding
+            soup = BeautifulSoup(response.text, 'html.parser')
             
             # Try to extract movie title
             title_selectors = [
