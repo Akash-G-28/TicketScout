@@ -9,7 +9,7 @@ from telegram.ext import ContextTypes, ApplicationBuilder, CommandHandler
 from scraper import BookMyShowScraper
 
 logger = logging.getLogger(__name__)
-ApplicationBuilder, CommandHandlerclass BotHandlers:
+class BotHandlers:
     """
     Class containing all bot handler methods for Telegram commands and messages.
     """
