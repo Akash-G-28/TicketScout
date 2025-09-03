@@ -5,12 +5,11 @@ Provides basic chat functionality including commands and keyword detection.
 
 import logging
 from telegram import Update
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, ApplicationBuilder, CommandHandler
 from scraper import BookMyShowScraper
 
 logger = logging.getLogger(__name__)
-
-class BotHandlers:
+ApplicationBuilder, CommandHandlerclass BotHandlers:
     """
     Class containing all bot handler methods for Telegram commands and messages.
     """
