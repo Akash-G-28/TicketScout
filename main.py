@@ -7,7 +7,7 @@ This bot provides basic chat functionality and continuous monitoring of movie bo
 import os
 import logging
 import threading
-from telegram.ext import Application, ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from bot_handlers import BotHandlers
 from monitor import BookingMonitor
 
