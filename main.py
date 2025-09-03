@@ -54,10 +54,9 @@ def main():
         # Register message handler for text messages
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bot_handlers.echo_message))
         
-        # Start the booking monitor in a separate thread
-        monitor_thread = threading.Thread(target=booking_monitor.start_monitoring, daemon=True)
-        monitor_thread.start()
-        logger.info("Booking monitor started in background thread")
+        # Start the booking monitor (no thread needed in PTB 20+)
+        booking_monitor = BookingMonitor(application, chat_id)
+        booking_monitor.start_monitoring()
         
         # Start the bot with long polling
         logger.info("Starting Telegram bot...")
