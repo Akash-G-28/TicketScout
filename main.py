@@ -25,10 +25,10 @@ def main():
     # Get bot token from environment variables (Replit secrets)
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
 
-    app = ApplicationBuilder().token(token).build()
-    app.add_handler(CommandHandler("start", start))
-    print("Bot is polling...")
-    app.run_polling()
+    #app = ApplicationBuilder().token(token).build()
+    #app.add_handler(CommandHandler("start", start))
+    #print("Bot is polling...")
+    #app.run_polling()
     
     if not bot_token:
         logger.error("TELEGRAM_BOT_TOKEN environment variable is required!")
