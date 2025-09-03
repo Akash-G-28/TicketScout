@@ -7,7 +7,7 @@ This bot provides basic chat functionality and continuous monitoring of movie bo
 import os
 import logging
 import threading
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.ext import Application, ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from bot_handlers import BotHandlers
 from monitor import BookingMonitor
 
@@ -24,6 +24,12 @@ def main():
     """
     # Get bot token from environment variables (Replit secrets)
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+
+    app = ApplicationBuilder().token(token).build()
+    app.add_handler(CommandHandler("start", start))
+    print("Bot is polling...")
+    app.run_polling()
+    
     if not bot_token:
         logger.error("TELEGRAM_BOT_TOKEN environment variable is required!")
         return
